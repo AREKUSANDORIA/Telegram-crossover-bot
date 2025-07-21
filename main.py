@@ -230,46 +230,50 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🗑 Crossover supprimé avec succès.")
 
 # === App Setup ===
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+async def main():
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("crossover", crossover_command))
-app.add_handler(CommandHandler("participants", participants_command))
-app.add_handler(CommandHandler("joinCross", join_command))
-app.add_handler(CommandHandler("leaveCross", leave_command))
-app.add_handler(CommandHandler("deleteCrossover", delete_crossover))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("crossover", crossover_command))
+    application.add_handler(CommandHandler("participants", participants_command))
+    application.add_handler(CommandHandler("joinCross", join_command))
+    application.add_handler(CommandHandler("leaveCross", leave_command))
+    application.add_handler(CommandHandler("deleteCrossover", delete_crossover))
 
-# Conversation : création
-app.add_handler(ConversationHandler(
-    entry_points=[CommandHandler("crossoverNow", crossover_now_start)],
-    states={
-        CHOOSING_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_name)],
-        CHOOSING_DURATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_duration)],
-        CHOOSING_INTRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_intro)],
-        CHOOSING_OBJECTIVE: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_objective)],
-        CHOOSING_PHOTO: [MessageHandler(filters.PHOTO | filters.Document.IMAGE, set_photo)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-))
+    # Conversation : création
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("crossoverNow", crossover_now_start)],
+        states={
+            CHOOSING_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_name)],
+            CHOOSING_DURATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_duration)],
+            CHOOSING_INTRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_intro)],
+            CHOOSING_OBJECTIVE: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_objective)],
+            CHOOSING_PHOTO: [MessageHandler(filters.PHOTO | filters.Document.IMAGE, set_photo)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
 
-# Conversation : modification
-app.add_handler(ConversationHandler(
-    entry_points=[CommandHandler("modifierCrossover", modify_crossover)],
-    states={
-        MODIFY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_select)],
-        MODIFY_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_input)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-))
+    # Conversation : modification
+    application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("modifierCrossover", modify_crossover)],
+        states={
+            MODIFY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_select)],
+            MODIFY_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_input)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
 
-# Callback pour les boutons
-app.add_handler(CallbackQueryHandler(handle_join, pattern="^join$"))
-app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
-app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
+    # Callback pour les boutons
+    application.add_handler(CallbackQueryHandler(handle_join, pattern="^join$"))
+    application.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
+    application.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
-def main():
     load_data()
-    app.run_polling()
+
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    await application.updater.idle()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
