@@ -13,7 +13,7 @@ import json
 import os
 import asyncio
 
-BOT_TOKEN = "8182668242:AAGpy6WMoYVJ5y_OLKd4FKWSFjixxggmHxY" 
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CREATOR_USERNAME = "Reku_Senpai"
 DATA_FILE = "crossover.json"
 
