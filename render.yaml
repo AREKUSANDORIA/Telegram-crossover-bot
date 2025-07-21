@@ -1,7 +1,10 @@
 services:
   - type: web
-    name: bot-telegram
+    name: telegram-crossover-bot
     env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
     plan: free
-    buildCommand: ""
-    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
