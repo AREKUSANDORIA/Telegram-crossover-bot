@@ -7,6 +7,7 @@ from telegram.ext import (
 from datetime import datetime, timedelta
 import json
 import os
+import asyncio
 
 BOT_TOKEN = "8182668242:AAGpy6WMoYVJ5y_OLKd4FKWSFjixxggmHxY"
 CREATOR_USERNAME = "Reku_Senpai"
