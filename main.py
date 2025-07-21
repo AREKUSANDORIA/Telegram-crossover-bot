@@ -11,7 +11,6 @@ from telegram.ext import (
 from datetime import datetime, timedelta
 import json
 import os
-import asyncio
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CREATOR_USERNAME = "Reku_Senpai"
