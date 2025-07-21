@@ -11,6 +11,10 @@ from telegram.ext import (
 from datetime import datetime, timedelta
 import json
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CREATOR_USERNAME = "Reku_Senpai"
