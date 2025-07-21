@@ -234,7 +234,7 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_data()
     await update.message.reply_text("🗑 Crossover supprimé avec succès.")
 
-async def main():
+def main():
     load_data()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -271,7 +271,6 @@ async def main():
     app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
     app.run_polling()
-
 
 if __name__ == "__main__":
     main()
