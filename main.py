@@ -271,7 +271,8 @@ async def main():
     app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
     app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
-    await app.run_polling()
+    app.run_polling()
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
