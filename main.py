@@ -270,11 +270,9 @@ async def main():
     application.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
     load_data()
+    await application.run_polling()
 
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling()
-    await application.updater.idle()
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())
