@@ -247,14 +247,14 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
 import os
 import time
 import threading
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import uvicorn
 
 # 👇 Petit serveur FastAPI pour éviter l'inactivité sur Render
 app_web = FastAPI()
 
-@app_web.get("/")
-async def root():
+@app_web.api_route("/", methods=["GET", "POST"])
+async def root(request: Request):
     return {"status": "Bot is running"}
 
 def run_web_server():
