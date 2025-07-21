@@ -234,7 +234,26 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_data()
     await update.message.reply_text("🗑 Crossover supprimé avec succès.")
 
-def main():
+import os
+from fastapi import FastAPI
+import uvicorn
+import asyncio
+
+# 👇 Serveur web minimal pour Render
+app_web = FastAPI()
+
+@app_web.get("/")
+async def root():
+    return {"status": "Bot is running"}
+
+async def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    config = uvicorn.Config(app_web, host="0.0.0.0", port=port, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
+
+# 👇 Ton bot Telegram
+async def run_telegram_bot():
     load_data()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -270,7 +289,14 @@ def main():
     app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
     app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
-    app.run_polling()
+    await app.run_polling()
+
+# 👇 Démarrage des deux en parallèle
+async def main():
+    await asyncio.gather(
+        run_telegram_bot(),
+        run_web_server()
+    )
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
