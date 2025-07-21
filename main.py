@@ -1,6 +1,21 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup from telegram.ext import ( ApplicationBuilder, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, CallbackQueryHandler, filters ) from datetime import datetime, timedelta import json import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    filters
+)
+from datetime import datetime, timedelta
+import json
+import os
+import asyncio
 
-BOT_TOKEN = "8182668242:AAGpy6WMoYVJ5y_OLKd4FKWSFjixxggmHxY" CREATOR_USERNAME = "Reku_Senpai" DATA_FILE = "crossover.json"
+BOT_TOKEN = "8182668242:AAGpy6WMoYVJ5y_OLKd4FKWSFjixxggmHxY" 
+CREATOR_USERNAME = "Reku_Senpai" 
+DATA_FILE = "crossover.json"
 
 crossover_data = {} user_status = {} CHOOSING_NAME, CHOOSING_DURATION, CHOOSING_INTRO, CHOOSING_OBJECTIVE, CHOOSING_PHOTO = range(5) MODIFY_SELECT, MODIFY_INPUT = range(5, 7)
 
