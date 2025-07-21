@@ -8,14 +8,20 @@ from telegram.ext import (
     CallbackQueryHandler,
     filters
 )
+
 from datetime import datetime, timedelta
 import json
 import os
 import logging
 
+# 👇 Pour maintenir le bot actif sur Render
+from keep_alive import keep_alive
+
+# 👇 Configuration des logs pour debug
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 👇 Token et nom du créateur
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CREATOR_USERNAME = "Reku_Senpai"
 DATA_FILE = "crossover.json"
@@ -238,76 +244,70 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_data()
     await update.message.reply_text("🗑 Crossover supprimé avec succès.")
 
-import os  
-from fastapi import FastAPI  
-import uvicorn  
-import threading  
+import os
 import time
+import threading
+from fastapi import FastAPI
+import uvicorn
 
-# 👇 Serveur web minimal pour Render  
-app_web = FastAPI()  
-  
-@app_web.get("/")  
-async def root():  
-    return {"status": "Bot is running"}  
-  
-def run_web_server():  
-    port = int(os.environ.get("PORT", 10000))  
-    config = uvicorn.Config(app_web, host="0.0.0.0", port=port, log_level="info")  
-    server = uvicorn.Server(config)  
-    server.run()  
-  
-# 👇 Ton bot Telegram  
-def run_telegram_bot():  
-    load_data()  
-    app = ApplicationBuilder().token(BOT_TOKEN).build()  
-  
-    app.add_handler(CommandHandler("start", start))  
-    app.add_handler(CommandHandler("crossover", crossover_command))  
-    app.add_handler(CommandHandler("participants", participants_command))  
-    app.add_handler(CommandHandler("joinCross", join_command))  
-    app.add_handler(CommandHandler("leaveCross", leave_command))  
-    app.add_handler(CommandHandler("deleteCrossover", delete_crossover))  
-  
-    app.add_handler(ConversationHandler(  
-        entry_points=[CommandHandler("crossoverNow", crossover_now_start)],  
-        states={  
-            CHOOSING_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_name)],  
-            CHOOSING_DURATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_duration)],  
-            CHOOSING_INTRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_intro)],  
-            CHOOSING_OBJECTIVE: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_objective)],  
-            CHOOSING_PHOTO: [MessageHandler(filters.PHOTO | filters.Document.IMAGE, set_photo)],  
-        },  
-        fallbacks=[CommandHandler("cancel", cancel)],  
-    ))  
-  
-    app.add_handler(ConversationHandler(  
-        entry_points=[CommandHandler("modifierCrossover", modify_crossover)],  
-        states={  
-            MODIFY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_select)],  
-            MODIFY_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_input)],  
-        },  
-        fallbacks=[CommandHandler("cancel", cancel)],  
-    ))  
-  
-    app.add_handler(CallbackQueryHandler(handle_join, pattern="^join$"))  
-    app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))  
-    app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))  
-  
-    app.run_polling()  
-  
-# 👇 Démarrage des deux services  
-if __name__ == "__main__":  
+# 👇 Petit serveur FastAPI pour éviter l'inactivité sur Render
+app_web = FastAPI()
+
+@app_web.get("/")
+async def root():
+    return {"status": "Bot is running"}
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    config = uvicorn.Config(app_web, host="0.0.0.0", port=port, log_level="info")
+    server = uvicorn.Server(config)
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+
+# 👇 Lancement du bot Telegram
+def run_telegram_bot():
+    load_data()
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("crossover", crossover_command))
+    app.add_handler(CommandHandler("participants", participants_command))
+    app.add_handler(CommandHandler("joinCross", join_command))
+    app.add_handler(CommandHandler("leaveCross", leave_command))
+    app.add_handler(CommandHandler("deleteCrossover", delete_crossover))
+
+    app.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("crossoverNow", crossover_now_start)],
+        states={
+            CHOOSING_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_name)],
+            CHOOSING_DURATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_duration)],
+            CHOOSING_INTRO: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_intro)],
+            CHOOSING_OBJECTIVE: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_objective)],
+            CHOOSING_PHOTO: [MessageHandler(filters.PHOTO | filters.Document.IMAGE, set_photo)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
+
+    app.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("modifierCrossover", modify_crossover)],
+        states={
+            MODIFY_SELECT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_select)],
+            MODIFY_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, modify_input)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    ))
+
+    app.add_handler(CallbackQueryHandler(handle_join, pattern="^join$"))
+    app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
+    app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
+
+    app.run_polling()
+
+# 👇 Lancement automatique
+if __name__ == "__main__":
     try:
-        # Lance le serveur web dans un thread séparé
-        web_thread = threading.Thread(target=run_web_server, daemon=True)
-        web_thread.start()
-
-        # Petite pause pour laisser le serveur démarrer
+        run_web_server()
         time.sleep(1)
-
-        # Lance le bot
         run_telegram_bot()
-
     except Exception as e:
         print("Erreur au démarrage :", e)
