@@ -267,5 +267,9 @@ app.add_handler(CallbackQueryHandler(handle_join, pattern="^join$"))
 app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
 app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
-load_data()
-app.run_polling()
+def main():
+    load_data()
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
