@@ -237,7 +237,7 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
 import os
 from fastapi import FastAPI
 import uvicorn
-import asyncio
+import threading
 
 # 👇 Serveur web minimal pour Render
 app_web = FastAPI()
@@ -246,14 +246,14 @@ app_web = FastAPI()
 async def root():
     return {"status": "Bot is running"}
 
-async def run_web_server():
+def run_web_server():
     port = int(os.environ.get("PORT", 10000))
     config = uvicorn.Config(app_web, host="0.0.0.0", port=port, log_level="info")
     server = uvicorn.Server(config)
-    await server.serve()
+    server.run()
 
 # 👇 Ton bot Telegram
-async def run_telegram_bot():
+def run_telegram_bot():
     load_data()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -289,14 +289,11 @@ async def run_telegram_bot():
     app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
     app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
-    await app.run_polling()
+    app.run_polling()
 
-# 👇 Démarrage des deux en parallèle
-async def main():
-    await asyncio.gather(
-        run_telegram_bot(),
-        run_web_server()
-    )
-
+# 👇 Démarrage des deux services
 if __name__ == "__main__":
-    asyncio.run(main())
+    web_thread = threading.Thread(target=run_web_server)
+    web_thread.start()
+
+    run_telegram_bot()
