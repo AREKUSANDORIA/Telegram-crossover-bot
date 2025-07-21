@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: telegram-crossover-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+    pythonVersion: 3.10.13
