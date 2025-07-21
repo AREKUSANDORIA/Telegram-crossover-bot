@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: crossover-bot
+    name: bot-telegram
     env: python
     plan: free
     buildCommand: ""
