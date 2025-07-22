@@ -256,7 +256,7 @@ import uvicorn
 # 👇 Petit serveur FastAPI pour éviter l'inactivité sur Render
 app_web = FastAPI()
 
-@app_web.api_route("/", methods=["GET", "POST"])
+@app_web.api_route("/", methods=["GET", "POST", "HEAD"])
 async def root(request: Request):
     return {"status": "Bot is running"}
 
