@@ -7,4 +7,4 @@ services:
     startCommand: "uvicorn keep_alive:app --host 0.0.0.0 --port 10000"
     envVars:
       - key: BOT_TOKEN
-        value: 8182668242:AAGpy6WMoYVJ5y_OLKd4FKWSFjixxggmHxY
+        value: 8182668242:AAF9o4uUPnZS6aHF-ZpOvQYz6WB6fD6Nthw
