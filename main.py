@@ -250,10 +250,16 @@ async def delete_crossover(update: Update, context: ContextTypes.DEFAULT_TYPE):
 import os
 import time
 import threading
+import asyncio
 from fastapi import FastAPI, Request
 import uvicorn
+from telegram.constants import ParseMode
 
-# 👇 Petit serveur FastAPI pour éviter l'inactivité sur Render
+# 👇 Keep Alive Config
+KEEP_ALIVE_GROUP_ID = -123456789  # Remplace par l'ID de ton groupe
+KEEP_ALIVE_INTERVAL = 300  # Toutes les 5 minutes
+
+# 👇 Petit serveur FastAPI pour Render
 app_web = FastAPI()
 
 @app_web.api_route("/", methods=["GET", "POST", "HEAD"])
@@ -267,8 +273,25 @@ def run_web_server():
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
 
-# 👇 Lancement du bot Telegram
-def run_telegram_bot():
+# 👇 Fonction Keep Alive
+async def keep_alive_loop(bot):
+    while True:
+        try:
+            message = await bot.send_message(
+                chat_id=KEEP_ALIVE_GROUP_ID,
+                text="⏰ Ping... Je suis réveillé !",
+                parse_mode=ParseMode.MARKDOWN
+            )
+            # Supprimer après 10 secondes pour ne pas spammer
+            await asyncio.sleep(10)
+            await bot.delete_message(chat_id=KEEP_ALIVE_GROUP_ID, message_id=message.message_id)
+        except Exception as e:
+            print(f"Erreur Keep Alive : {e}")
+
+        await asyncio.sleep(KEEP_ALIVE_INTERVAL)
+
+# 👇 Lancement du bot Telegram (ASYNC)
+async def run_telegram_bot():
     load_data()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -304,13 +327,17 @@ def run_telegram_bot():
     app.add_handler(CallbackQueryHandler(handle_ignore, pattern="^ignore$"))
     app.add_handler(CallbackQueryHandler(handle_close, pattern="^close$"))
 
-    app.run_polling()
+    # Lancer Keep Alive en parallèle
+    asyncio.create_task(keep_alive_loop(app.bot))
+
+    # Lancer le bot
+    await app.run_polling()
 
 # 👇 Lancement automatique
 if __name__ == "__main__":
     try:
         run_web_server()
-        time.sleep(1)
-        run_telegram_bot()
+        time.sleep(1)  # Attendre que le serveur web soit prêt
+        asyncio.run(run_telegram_bot())
     except Exception as e:
         print("Erreur au démarrage :", e)
